@@ -1,0 +1,42 @@
+[
+  {
+    "speaker": "SPEAKER_00",
+    "start": 32.025968750000004,
+    "duration": 34.576875
+  },
+  {
+    "speaker": "SPEAKER_00",
+    "start": 68.52659375,
+    "duration": 0.6749999999999972
+  },
+  {
+    "speaker": "SPEAKER_00",
+    "start": 69.52221875000001,
+    "duration": 0.43874999999999886
+  },
+  {
+    "speaker": "SPEAKER_00",
+    "start": 71.34471875,
+    "duration": 2.7337500000000006
+  },
+  {
+    "speaker": "SPEAKER_00",
+    "start": 74.51721875,
+    "duration": 44.19562500000001
+  },
+  {
+    "speaker": "SPEAKER_00",
+    "start": 119.06721875000001,
+    "duration": 0.3374999999999915
+  },
+  {
+    "speaker": "SPEAKER_00",
+    "start": 119.62409375000001,
+    "duration": 57.307500000000005
+  },
+  {
+    "speaker": "SPEAKER_00",
+    "start": 177.37034375000002,
+    "duration": 0.7593750000000057
+  }
+]
