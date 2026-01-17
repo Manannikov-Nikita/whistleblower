@@ -51,8 +51,7 @@ def run_diarization(
         )
     except ModuleNotFoundError as exc:
         raise DiarizationError(
-            "pyannote.audio is not installed. Run: pip install -r "
-            "requirements-diarization.txt"
+            "pyannote.audio is not installed. Run: uv sync"
         ) from exc
 
     if not audio_path.exists():

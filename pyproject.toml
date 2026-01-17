@@ -1,0 +1,26 @@
+[project]
+name = "whistleblower"
+version = "0.1.0"
+description = "CLI pipeline for meeting audio capture, transcription, diarization, and summaries."
+readme = "README.md"
+requires-python = ">=3.9,<3.13"
+dependencies = [
+  "numpy>=1.20,<2.0",
+  "sounddevice>=0.4",
+  "openai-whisper>=20231117",
+  "openai>=1.0",
+  "pyannote.audio>=3.1.0",
+  "huggingface_hub<1.0",
+  "torch==2.5.1",
+  "torchaudio==2.5.1",
+]
+
+[project.scripts]
+whistleblower = "whistleblower.cli:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["whistleblower"]

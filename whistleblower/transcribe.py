@@ -18,7 +18,7 @@ def transcribe_audio(
         import whisper
     except ModuleNotFoundError as exc:
         raise TranscriptionError(
-            "openai-whisper is not installed. Run: pip install openai-whisper"
+            "openai-whisper is not installed. Run: uv sync"
         ) from exc
 
     if not audio_path.exists():
