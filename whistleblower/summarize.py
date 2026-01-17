@@ -36,7 +36,7 @@ def summarize_text(
         from openai import OpenAI
     except ModuleNotFoundError as exc:
         raise SummarizationError(
-            "openai is not installed. Run: pip install openai"
+            "openai is not installed. Run: uv sync"
         ) from exc
 
     api_key = os.getenv("OPENAI_API_KEY")
