@@ -35,6 +35,7 @@ WHISPER_MODEL=medium
 OUTPUT_DIR=./output
 KEEP_RAW_AUDIO=false
 CHUNK_SEC=20
+FFMPEG_PATH=/opt/homebrew/bin/ffmpeg
 ```
 
 5) Hugging Face access:
@@ -45,21 +46,25 @@ CHUNK_SEC=20
 
 ## Record audio (Chrome extension)
 Use the extension in `chrome_audio/` to record the current tab (optionally with mic).
-It saves a `.webm` file to your Downloads folder. See `chrome_audio/README.md`.
+Audio is streamed to the native host and processed immediately. See `chrome_audio/README.md`.
+
+### Native Messaging (required for streaming)
+Install the native host so the extension can stream audio and trigger the pipeline.
+Use the same Python that has the project dependencies installed (via `uv sync`):
+```bash
+PYTHON_BIN="$(uv run python -c 'import sys; print(sys.executable)')" \\
+  bash native_host/install_native_host.sh <EXTENSION_ID>
+```
+Find the extension ID in `chrome://extensions/`.
+
+If you prefer a plain install (system Python in PATH):
+```bash
+bash native_host/install_native_host.sh <EXTENSION_ID>
+```
+Logs go to `output/native_host.log`. Reload the extension after installing the host.
 
 ## Quick Start
-Example workflow using a session folder:
-```bash
-SESSION=output/session-YYYYmmdd-HHMMSS
-mkdir -p "$SESSION"
-# Pick the file you just recorded in Downloads.
-cp ~/Downloads/your-recording.webm "$SESSION"/audio.webm
-
-uv run whistleblower transcribe --session-dir "$SESSION"
-uv run whistleblower diarize --session-dir "$SESSION"
-uv run whistleblower merge-transcript --session-dir "$SESSION"
-uv run whistleblower summarize --session-dir "$SESSION"
-```
+Record via the Chrome extension, then check `output/session-*/` for results.
 
 Output files will be in the session folder:
 - `transcript.txt`
@@ -70,11 +75,11 @@ Output files will be in the session folder:
 
 Manual steps (if you want custom paths or separate files):
 ```bash
-uv run whistleblower transcribe --audio ~/Downloads/recording.webm \
+uv run whistleblower transcribe --audio /path/to/recording.webm \
   --output output/transcript.txt \
   --segments-output output/transcript_segments.json
 
-uv run whistleblower diarize --audio ~/Downloads/recording.webm \
+uv run whistleblower diarize --audio /path/to/recording.webm \
   --output-dir output/diarization
 
 uv run whistleblower merge-transcript \

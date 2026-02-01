@@ -71,6 +71,12 @@
         showIdleUI();
         return;
       }
+      if (res && res.lastError && !res.isRecording) {
+        setStatus(res.lastError, false);
+        warningEl.classList.add('hidden');
+        recordBtn.disabled = false;
+        return;
+      }
       if (res && res.isRecording) {
         showRecordingUI();
       } else {

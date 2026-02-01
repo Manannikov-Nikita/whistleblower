@@ -1,5 +1,8 @@
 const OFFSCREEN_URL = 'offscreen.html';
+const NATIVE_HOST_NAME = 'com.whistleblower.native_host';
 let isRecording = false;
+let lastError = null;
+let nativePort = null;
 
 async function ensureOffscreenDocument() {
   const contexts = await chrome.runtime.getContexts({
@@ -20,10 +23,59 @@ async function closeOffscreenDocument() {
   } catch (_) {}
 }
 
+function setLastError(message) {
+  lastError = message || null;
+}
+
+function ensureNativePort() {
+  if (nativePort) return nativePort;
+  try {
+    nativePort = chrome.runtime.connectNative(NATIVE_HOST_NAME);
+  } catch (err) {
+    setLastError('Native host недоступен: ' + err.message);
+    nativePort = null;
+    return null;
+  }
+
+  nativePort.onMessage.addListener((msg) => {
+    if (msg && msg.ok === false) {
+      const detail = msg.error || 'неизвестная ошибка';
+      setLastError('Native host: ' + detail);
+    }
+  });
+
+  nativePort.onDisconnect.addListener(() => {
+    const err = chrome.runtime.lastError;
+    if (err) {
+      setLastError('Native host недоступен: ' + err.message);
+    } else {
+      setLastError('Native host отключился.');
+    }
+    nativePort = null;
+  });
+
+  return nativePort;
+}
+
+function sendToNative(message) {
+  const port = ensureNativePort();
+  if (!port) {
+    return false;
+  }
+  try {
+    port.postMessage(message);
+    return true;
+  } catch (err) {
+    setLastError('Native host недоступен: ' + err.message);
+    return false;
+  }
+}
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'startRecording') {
     (async () => {
       try {
+        setLastError(null);
         await ensureOffscreenDocument();
         chrome.runtime.sendMessage({
           type: 'start',
@@ -50,8 +102,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === 'getRecordingState') {
-    sendResponse({ isRecording });
+    sendResponse({ isRecording, lastError });
     return false;
+  }
+
+  if (message.type === 'stream_start') {
+    const ok = sendToNative({
+      type: 'stream_start',
+      session_id: message.sessionId,
+      mime_type: message.mimeType,
+    });
+    sendResponse({ ok });
+    return true;
+  }
+
+  if (message.type === 'stream_chunk') {
+    const ok = sendToNative({
+      type: 'stream_chunk',
+      session_id: message.sessionId,
+      index: message.index,
+      data: message.data,
+    });
+    sendResponse({ ok });
+    return true;
+  }
+
+  if (message.type === 'stream_stop') {
+    const ok = sendToNative({
+      type: 'stream_stop',
+      session_id: message.sessionId,
+    });
+    sendResponse({ ok });
+    return true;
   }
 
   if (message.type === 'recording-stopped') {
