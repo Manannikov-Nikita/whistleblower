@@ -3,6 +3,11 @@ let tabStream = null;
 let micStream = null;
 let audioContext = null;
 let chunks = [];
+let currentSessionId = null;
+let sendQueue = Promise.resolve();
+
+const TIMESLICE_MS = 1000;
+const MAX_CHUNK_BYTES = 256 * 1024;
 
 function stopStreams() {
   if (tabStream) {
@@ -19,19 +24,54 @@ function stopStreams() {
   }
 }
 
-function triggerDownload(blob) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `запись-встречи-${Date.now()}.webm`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
 function notifyStopped() {
   chrome.runtime.sendMessage({ type: 'recording-stopped' }).catch(() => {});
+}
+
+function arrayBufferToBase64(buffer) {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.length;
+  for (let i = 0; i < len; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function sendNativeMessage(payload) {
+  return new Promise((resolve) => {
+    chrome.runtime.sendMessage(payload, (res) => {
+      resolve(res);
+    });
+  });
+}
+
+function sendChunk(sessionId, index, data) {
+  return sendNativeMessage({
+    type: 'stream_chunk',
+    sessionId,
+    index,
+    data,
+  });
+}
+
+function enqueueBlob(sessionId, blob) {
+  const total = blob.size;
+  let offset = 0;
+  let index = 0;
+
+  while (offset < total) {
+    const slice = blob.slice(offset, offset + MAX_CHUNK_BYTES);
+    offset += MAX_CHUNK_BYTES;
+    const currentIndex = index;
+    index += 1;
+
+    sendQueue = sendQueue.then(async () => {
+      const buffer = await slice.arrayBuffer();
+      const data = arrayBufferToBase64(buffer);
+      await sendChunk(sessionId, currentIndex, data);
+    }).catch(() => {});
+  }
 }
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
@@ -55,7 +95,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     };
 
     Promise.all([startTab(), startMic()])
-      .then(([tab, mic]) => {
+      .then(async ([tab, mic]) => {
         tabStream = tab;
         micStream = mic;
 
@@ -74,20 +114,35 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
           ? 'audio/webm;codecs=opus'
           : 'audio/webm';
-        mediaRecorder = new MediaRecorder(destination.stream);
+        mediaRecorder = new MediaRecorder(destination.stream, { mimeType });
         chunks = [];
 
+        currentSessionId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+        await sendNativeMessage({
+          type: 'stream_start',
+          sessionId: currentSessionId,
+          mimeType,
+        });
+
         mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) chunks.push(e.data);
+          if (e.data.size > 0 && currentSessionId) {
+            enqueueBlob(currentSessionId, e.data);
+          }
         };
 
         mediaRecorder.onstop = () => {
           stopStreams();
-          if (chunks.length > 0) {
-            const blob = new Blob(chunks, { type: mimeType });
-            triggerDownload(blob);
-          }
-          notifyStopped();
+          const sessionId = currentSessionId;
+          currentSessionId = null;
+          sendQueue = sendQueue.then(() => {
+            if (!sessionId) return null;
+            return sendNativeMessage({
+              type: 'stream_stop',
+              sessionId,
+            });
+          }).finally(() => {
+            notifyStopped();
+          });
         };
 
         mediaRecorder.onerror = () => {
@@ -95,7 +150,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           notifyStopped();
         };
 
-        mediaRecorder.start(1000);
+        mediaRecorder.start(TIMESLICE_MS);
         chrome.runtime.sendMessage({ type: 'recording-started' }).catch(() => {});
         sendResponse({ ok: true });
       })

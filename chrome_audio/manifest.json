@@ -8,7 +8,7 @@
     "activeTab",
     "tabs",
     "offscreen",
-    "storage"
+    "nativeMessaging"
   ],
   "action": {
     "default_popup": "popup.html",
