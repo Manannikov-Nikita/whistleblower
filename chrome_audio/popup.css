@@ -1,0 +1,161 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 280px;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #1a1a2e;
+  color: #eee;
+}
+
+.container {
+  padding: 20px;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: #888;
+}
+
+.status {
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  background: #16213e;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: center;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status.recording {
+  background: #0f3460;
+  color: #e94560;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label input {
+  width: 16px;
+  height: 16px;
+  accent-color: #e94560;
+}
+
+.mic-permission {
+  margin: -4px 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #0f172a;
+  border: 1px solid #1f2a44;
+}
+
+.mic-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.mic-text {
+  margin: 0 0 10px;
+  font-size: 11px;
+  color: #cbd5f5;
+  line-height: 1.3;
+}
+
+@keyframes pulse {
+  50% { opacity: 0.85; }
+}
+
+.btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-record {
+  background: #e94560;
+  color: #fff;
+}
+
+.btn-record:hover {
+  background: #ff6b6b;
+}
+
+.btn-record.stop {
+  background: #0f3460;
+  color: #fff;
+}
+
+.btn-record.stop:hover {
+  background: #1a4a7a;
+}
+
+.btn-icon {
+  font-size: 10px;
+  line-height: 1;
+}
+
+.warning {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+}
+
+.warning.hidden {
+  display: none;
+}
+
+.hidden {
+  display: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #16213e;
+  color: #e9e9e9;
+  font-size: 12px;
+  padding: 10px 12px;
+}
+
+.btn-secondary:hover {
+  background: #223154;
+}
