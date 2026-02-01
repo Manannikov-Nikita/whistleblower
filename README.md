@@ -1,14 +1,12 @@
 # Whistleblower
 
-CLI pipeline for capturing meeting audio via BlackHole on macOS (Apple Silicon),
-local Whisper transcription, speaker diarization (pyannote.audio), and
-speaker-aware transcript output.
+CLI pipeline for transcription, diarization, and summaries from recorded meeting audio.
+Recording is handled by the Chrome extension in `chrome_audio/`.
 
 ## Requirements
 - macOS (Apple Silicon)
 - Python 3.9–3.12 (3.11 recommended)
-- Homebrew
-- BlackHole audio device: https://existential.audio/blackhole/
+- Google Chrome (for recording via extension)
 - ffmpeg (for Whisper audio loading)
 - uv (https://github.com/astral-sh/uv)
 
@@ -45,11 +43,22 @@ CHUNK_SEC=20
   - https://hf.co/pyannote/segmentation-3.0
 - Make sure your token has read access to gated models.
 
+## Record audio (Chrome extension)
+Use the extension in `chrome_audio/` to record the current tab (optionally with mic).
+It saves a `.webm` file to your Downloads folder. See `chrome_audio/README.md`.
+
 ## Quick Start
-Main workflow (record until you press Enter, then auto-run pipeline to summary):
+Example workflow using a session folder:
 ```bash
-uv run whistleblower start --device BlackHole
-# press Enter to stop
+SESSION=output/session-YYYYmmdd-HHMMSS
+mkdir -p "$SESSION"
+# Pick the file you just recorded in Downloads.
+cp ~/Downloads/your-recording.webm "$SESSION"/audio.webm
+
+uv run whistleblower transcribe --session-dir "$SESSION"
+uv run whistleblower diarize --session-dir "$SESSION"
+uv run whistleblower merge-transcript --session-dir "$SESSION"
+uv run whistleblower summarize --session-dir "$SESSION"
 ```
 
 Output files will be in the session folder:
@@ -59,51 +68,22 @@ Output files will be in the session folder:
 - `speaker_transcript.md`
 - `summary.md`
 
-Manual steps (if you want to control each stage):
+Manual steps (if you want custom paths or separate files):
 ```bash
-uv run whistleblower start --device BlackHole --no-auto-summary
-uv run whistleblower transcribe --session-dir output/session-YYYYmmdd-HHMMSS
-uv run whistleblower diarize --session-dir output/session-YYYYmmdd-HHMMSS
-uv run whistleblower merge-transcript --session-dir output/session-YYYYmmdd-HHMMSS
-uv run whistleblower summarize --session-dir output/session-YYYYmmdd-HHMMSS
-```
+uv run whistleblower transcribe --audio ~/Downloads/recording.webm \
+  --output output/transcript.txt \
+  --segments-output output/transcript_segments.json
 
-List input devices:
-```bash
-uv run whistleblower list-devices
-```
+uv run whistleblower diarize --audio ~/Downloads/recording.webm \
+  --output-dir output/diarization
 
-Test input from BlackHole:
-```bash
-uv run whistleblower test-input --device BlackHole --seconds 5
-```
-
-Record a short sample:
-```bash
-uv run whistleblower test-input --device BlackHole --seconds 40 --output output/sample.wav
-```
-
-Transcribe (Whisper):
-```bash
-uv run whistleblower transcribe --audio output/sample.wav
-```
-
-Diarize (pyannote):
-```bash
-uv run whistleblower diarize --audio output/sample.wav
-```
-
-Merge transcript + diarization:
-```bash
 uv run whistleblower merge-transcript \
   --diarization-segments output/diarization/segments.json \
-  --transcript-segments output/sample.segments.json \
+  --transcript-segments output/transcript_segments.json \
   --output output/speaker_transcript.md
-```
 
-Summarize via OpenAI:
-```bash
-uv run whistleblower summarize --input output/speaker_transcript.md
+uv run whistleblower summarize --input output/speaker_transcript.md \
+  --output output/summary.md
 ```
 
 ## Notes

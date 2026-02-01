@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Запись звука вкладки",
+  "version": "1.3.0",
+  "description": "Записывает звук с текущей вкладки и (по желанию) микрофон, скачивает на компьютер",
+  "permissions": [
+    "tabCapture",
+    "activeTab",
+    "tabs",
+    "offscreen",
+    "storage"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Запись звука вкладки"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html"
+  }
+}

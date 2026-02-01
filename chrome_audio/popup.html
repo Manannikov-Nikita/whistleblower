@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Запись звука вкладки</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Запись звука</h1>
+    <p class="hint">Вкладка + микрофон (для встреч)</p>
+
+    <div class="status" id="status">Готов к записи</div>
+
+    <label class="checkbox-label">
+      <input type="checkbox" id="includeMic" checked>
+      Записывать мой микрофон
+    </label>
+    <div class="mic-permission hidden" id="micPermission">
+      <div class="mic-title">Микрофон</div>
+      <p class="mic-text" id="micStatus">Нужен доступ к микрофону для записи.</p>
+      <button type="button" id="requestMicBtn" class="btn btn-secondary">Разрешить микрофон</button>
+    </div>
+
+    <button type="button" id="recordBtn" class="btn btn-record">
+      <span class="btn-icon">●</span>
+      Начать запись
+    </button>
+
+    <p class="warning" id="warning">Окно можно закрыть — запись продолжится в фоне</p>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
