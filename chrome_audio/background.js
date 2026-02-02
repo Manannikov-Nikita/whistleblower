@@ -77,14 +77,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         setLastError(null);
         await ensureOffscreenDocument();
-        chrome.runtime.sendMessage({
+        const res = await chrome.runtime.sendMessage({
           type: 'start',
           streamId: message.streamId,
           includeMic: message.includeMic,
-        }).catch(() => {});
+        });
+        if (!res || res.ok !== true) {
+          const error = (res && res.error) ? res.error : 'не удалось запустить запись';
+          setLastError(error);
+          sendResponse({ ok: false, error });
+          return;
+        }
         sendResponse({ ok: true });
       } catch (e) {
-        sendResponse({ ok: false, error: e.message });
+        const error = e && e.message ? e.message : 'не удалось запустить запись';
+        setLastError(error);
+        sendResponse({ ok: false, error });
       }
     })();
     return true;
