@@ -15,14 +15,47 @@
       max-width: 520px;
     }
     h1 { font-size: 18px; margin-bottom: 8px; }
+    h2 { font-size: 14px; margin: 0 0 8px; }
     p { color: #888; font-size: 13px; margin-bottom: 14px; }
     code { color: #e94560; }
+    .card {
+      background: #222244;
+      border: 1px solid #2e2e4d;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .btn {
+      background: #e94560;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .status {
+      color: #c9c9ff;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
   <h1>Запись звука вкладки</h1>
-  <p>Разрешение на микрофон запрашивается прямо в окне расширения.</p>
+  <p>Если микрофон не запрашивается в попапе, разрешите доступ на этой странице.</p>
   <p>Запись передаётся в native host потоково, без сохранения в Downloads.</p>
   <p>Логи обработки: <code>output/native_host.log</code></p>
+
+  <div class="card">
+    <h2>Разрешение микрофона</h2>
+    <p>Нажмите кнопку и подтвердите запрос Chrome.</p>
+    <button type="button" class="btn" id="requestMicBtn">Запросить доступ</button>
+    <div class="status" id="micStatus">Статус: доступ не запрошен</div>
+    <div class="status hidden" id="closeHint">Можно закрыть эту вкладку и вернуться в попап.</div>
+  </div>
+
+  <script src="options.js"></script>
 </body>
 </html>

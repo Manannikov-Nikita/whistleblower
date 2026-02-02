@@ -38,8 +38,30 @@
     micPermissionEl.classList.add('hidden');
   }
 
-  async function requestMicPermission() {
+  function openMicPermissionPage() {
+    const url = chrome.runtime.getURL('options.html?mic=1');
+    chrome.tabs.create({ url });
+  }
+
+  function isMicPermissionError(message) {
+    const msg = (message || '').toLowerCase();
+    return (
+      msg.includes('permission') ||
+      msg.includes('denied') ||
+      msg.includes('dismissed') ||
+      msg.includes('notallowed') ||
+      msg.includes('not allowed') ||
+      msg.includes('securityerror')
+    );
+  }
+
+  async function requestMicPermission({ openPageOnFail = false } = {}) {
     setStatus('Запрос доступа к микрофону…', false);
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showMicPermission('Браузер не поддерживает доступ к микрофону.');
+      setStatus('Микрофон: ошибка', false);
+      return false;
+    }
     try {
       const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStream.getTracks().forEach((t) => t.stop());
@@ -53,9 +75,15 @@
         msg.includes('dismissed') ||
         msg.includes('denied') ||
         msg.includes('notallowed') ||
-        err.name === 'NotAllowedError';
+        err.name === 'NotAllowedError' ||
+        err.name === 'SecurityError';
       if (isPermissionError) {
-        showMicPermission('Нет доступа к микрофону. Нажмите кнопку ниже и разрешите доступ.');
+        showMicPermission(
+          'Нет доступа к микрофону. Открою вкладку с запросом разрешения.'
+        );
+        if (openPageOnFail) {
+          openMicPermissionPage();
+        }
         setStatus('Микрофон не разрешен', false);
         return false;
       }
@@ -86,7 +114,7 @@
   }
 
   requestMicBtn.addEventListener('click', async () => {
-    await requestMicPermission();
+    await requestMicPermission({ openPageOnFail: true });
   });
 
   includeMicEl.addEventListener('change', () => {
@@ -124,7 +152,7 @@
       const includeMic = includeMicEl.checked;
 
       if (includeMic) {
-        const ok = await requestMicPermission();
+        const ok = await requestMicPermission({ openPageOnFail: true });
         if (!ok) {
           return;
         }
@@ -140,7 +168,12 @@
             return;
           }
           if (res && !res.ok) {
-            setStatus('Ошибка: ' + (res.error || 'не удалось запустить'), false);
+            const errorText = res.error || 'не удалось запустить';
+            setStatus('Ошибка: ' + errorText, false);
+            if (includeMic && isMicPermissionError(errorText)) {
+              showMicPermission('Нет доступа к микрофону. Открою вкладку с запросом разрешения.');
+              openMicPermissionPage();
+            }
             return;
           }
           showRecordingUI();

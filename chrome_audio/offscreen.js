@@ -157,7 +157,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       .catch((err) => {
         stopStreams();
         notifyStopped();
-        sendResponse({ ok: false, error: err.message });
+        const error =
+          (err && (err.message || err.name)) ||
+          'не удалось получить доступ к медиа';
+        sendResponse({ ok: false, error });
       });
 
     return true;
