@@ -3,6 +3,7 @@
   "name": "Запись звука вкладки",
   "version": "1.3.0",
   "description": "Записывает звук с текущей вкладки и (по желанию) микрофон, скачивает на компьютер",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0Qi6xa7QtRL+mvubZ/PbCxP/rytbwo95WMBeqbyblKd9V0t4glfhr6cEwbjJWgXadkjO+VsyqmN5LPCOfXcJtyEMU5b+yw9YIem2GBq3/8tNIPnCab4qp+RdmnS246KSFPj8dFPXq4nskr/KdAmiEeQ6A491Fnr7e+1dUogGd8kjV16yrBjhGg0Kyq+wXa/73h/J1vV6gdroCXfBAfxnC0NFyD04AQa2imc970FPClKG6CkN50a3ajBt5WVQy/5ZRfLiRvezckbhvu0acAeVBLADkq+Yq+yar8dk8VZQzlTbBna3HYvQFRqyifuxrU3tv2whrXrCLMoxo8o3/g7PmwIDAQAB",
   "permissions": [
     "tabCapture",
     "activeTab",

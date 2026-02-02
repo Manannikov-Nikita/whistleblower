@@ -26,11 +26,15 @@
 
 После остановки записи аудио сразу отправляется в native host и запускает обработку:
 
-1. Узнайте ID расширения: откройте `chrome://extensions/` и скопируйте ID у расширения.
-2. Установите native host:
+1. Установите native host:
    ```bash
    PYTHON_BIN="$(uv run python -c 'import sys; print(sys.executable)')" \
-     bash native_host/install_native_host.sh <EXTENSION_ID>
+     bash native_host/install_native_host.sh
+   ```
+   По умолчанию используется фиксированный ID: `kboppgghhbphgciaolnfakeldpphpikg`.
+   Чтобы переопределить:
+   ```bash
+   bash native_host/install_native_host.sh --extension-id <EXTENSION_ID>
    ```
 3. Перезапустите Chrome.
 

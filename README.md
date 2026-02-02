@@ -11,6 +11,16 @@ Recording is handled by the Chrome extension in `chrome_audio/`.
 - uv (https://github.com/astral-sh/uv)
 
 ## Install
+Quick install (recommended):
+```bash
+curl -fsSL https://raw.githubusercontent.com/Manannikov-Nikita/whistleblower/master/scripts/install.sh | bash
+```
+Optional overrides:
+```bash
+curl -fsSL https://raw.githubusercontent.com/Manannikov-Nikita/whistleblower/master/scripts/install.sh | bash -s -- --dir ~/.whistleblower --extension-id <EXTENSION_ID>
+```
+
+Manual install:
 1) Install system dependencies:
 ```bash
 brew install ffmpeg
@@ -53,13 +63,17 @@ Install the native host so the extension can stream audio and trigger the pipeli
 Use the same Python that has the project dependencies installed (via `uv sync`):
 ```bash
 PYTHON_BIN="$(uv run python -c 'import sys; print(sys.executable)')" \\
-  bash native_host/install_native_host.sh <EXTENSION_ID>
+  bash native_host/install_native_host.sh
 ```
-Find the extension ID in `chrome://extensions/`.
+Default extension ID is fixed: `kboppgghhbphgciaolnfakeldpphpikg`.
+To override it:
+```bash
+bash native_host/install_native_host.sh --extension-id <EXTENSION_ID>
+```
 
 If you prefer a plain install (system Python in PATH):
 ```bash
-bash native_host/install_native_host.sh <EXTENSION_ID>
+bash native_host/install_native_host.sh
 ```
 Logs go to `output/native_host.log`. Reload the extension after installing the host.
 
