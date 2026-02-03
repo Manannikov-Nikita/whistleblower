@@ -1,13 +1,120 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DEFAULT_INSTALL_DIR="$HOME/.whistleblower"
+DEFAULT_INSTALL_DIR="$HOME/whistleblower"
 DEFAULT_REPO_URL="https://github.com/Manannikov-Nikita/whistleblower.git"
 DEFAULT_EXTENSION_ID="kboppgghhbphgciaolnfakeldpphpikg"
 
 INSTALL_DIR="$DEFAULT_INSTALL_DIR"
 EXTENSION_ID=""
 REPO_URL="${WHISTLEBLOWER_REPO_URL:-$DEFAULT_REPO_URL}"
+PROMPT_DEVICE=""
+
+if [[ -t 0 || -t 1 || -t 2 ]]; then
+  PROMPT_DEVICE="/dev/tty"
+fi
+
+prompt_with_default() {
+  local label="$1"
+  local default_value="$2"
+  local input=""
+
+  if [[ -n "$default_value" ]]; then
+    if [[ -n "$PROMPT_DEVICE" ]]; then
+      read -r -p "$label [$default_value]: " input < "$PROMPT_DEVICE" || true
+    else
+      read -r -p "$label [$default_value]: " input || true
+    fi
+  else
+    if [[ -n "$PROMPT_DEVICE" ]]; then
+      read -r -p "$label: " input < "$PROMPT_DEVICE" || true
+    else
+      read -r -p "$label: " input || true
+    fi
+  fi
+
+  if [[ -z "$input" ]]; then
+    input="$default_value"
+  fi
+
+  printf '%s' "$input"
+}
+
+prompt_secret() {
+  local label="$1"
+  local input=""
+
+  if [[ -n "$PROMPT_DEVICE" ]]; then
+    read -r -s -p "$label: " input < "$PROMPT_DEVICE" || true
+    echo ""
+  else
+    read -r -p "$label: " input || true
+  fi
+
+  printf '%s' "$input"
+}
+
+create_env_file() {
+  local env_path="$INSTALL_DIR/.env"
+
+  if [[ -f "$env_path" ]]; then
+    local overwrite=""
+    if [[ -n "$PROMPT_DEVICE" ]]; then
+      read -r -p ".env already exists at $env_path. Overwrite? [y/N]: " overwrite < "$PROMPT_DEVICE" || true
+    else
+      read -r -p ".env already exists at $env_path. Overwrite? [y/N]: " overwrite || true
+    fi
+    if [[ ! "$overwrite" =~ ^[Yy]$ ]]; then
+      echo "Keeping existing .env"
+      return
+    fi
+  fi
+
+  echo "Configuring .env..."
+
+  local openai_key
+  local openai_model
+  local openai_base_url
+  local hf_token
+  local whisper_model
+  local output_dir
+  local keep_raw
+  local chunk_sec
+  local ffmpeg_path
+  local default_ffmpeg_path
+
+  openai_key="$(prompt_secret "OpenAI API key (OPENAI_API_KEY)")"
+  hf_token="$(prompt_secret "Hugging Face token (HUGGINGFACE_TOKEN, optional)")"
+  openai_base_url="$(prompt_with_default "OpenAI base URL (OPENAI_BASE_URL)" "https://api.openai.com/v1")"
+  openai_model="$(prompt_with_default "OpenAI model (OPENAI_MODEL)" "gpt-4o-mini")"
+  whisper_model="$(prompt_with_default "Whisper model (WHISPER_MODEL)" "medium")"
+  output_dir="$(prompt_with_default "Output dir (OUTPUT_DIR)" "./output")"
+  keep_raw="$(prompt_with_default "Keep raw audio? (KEEP_RAW_AUDIO) [true/false]" "false")"
+  chunk_sec="$(prompt_with_default "Chunk length in seconds (CHUNK_SEC)" "20")"
+  default_ffmpeg_path="$(command -v ffmpeg || true)"
+  ffmpeg_path="$(prompt_with_default "FFmpeg path (FFMPEG_PATH)" "$default_ffmpeg_path")"
+
+  cat > "$env_path" <<EOF
+OPENAI_API_KEY=$openai_key
+OPENAI_BASE_URL=$openai_base_url
+OPENAI_MODEL=$openai_model
+HUGGINGFACE_TOKEN=$hf_token
+WHISPER_MODEL=$whisper_model
+OUTPUT_DIR=$output_dir
+KEEP_RAW_AUDIO=$keep_raw
+CHUNK_SEC=$chunk_sec
+FFMPEG_PATH=$ffmpeg_path
+EOF
+
+  echo "Wrote .env to: $env_path"
+
+  if [[ -z "$openai_key" ]]; then
+    echo "Note: OPENAI_API_KEY is empty; summaries will be skipped."
+  fi
+  if [[ -z "$hf_token" ]]; then
+    echo "Note: HUGGINGFACE_TOKEN is empty; diarization will require a token."
+  fi
+}
 
 usage() {
   cat <<USAGE
@@ -93,6 +200,8 @@ else
 fi
 
 cd "$INSTALL_DIR"
+
+create_env_file
 
 echo "Installing Python dependencies with uv..."
 uv sync
