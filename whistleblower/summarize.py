@@ -45,7 +45,11 @@ def summarize_text(
             "OPENAI_API_KEY is not set (check .env)."
         )
 
-    client = OpenAI(api_key=api_key)
+    base_url = os.getenv("OPENAI_BASE_URL", "").strip()
+    if base_url:
+        client = OpenAI(api_key=api_key, base_url=base_url)
+    else:
+        client = OpenAI(api_key=api_key)
     prompt = _build_prompt(input_text, language)
     response = client.responses.create(
         model=_resolve_model(model),

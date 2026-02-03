@@ -15,9 +15,10 @@ Quick install (recommended):
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Manannikov-Nikita/whistleblower/master/scripts/install.sh | bash
 ```
+The installer will prompt for API keys and write `.env`.
 Optional overrides:
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Manannikov-Nikita/whistleblower/master/scripts/install.sh | bash -s -- --dir ~/.whistleblower --extension-id <EXTENSION_ID>
+curl -fsSL https://raw.githubusercontent.com/Manannikov-Nikita/whistleblower/master/scripts/install.sh | bash -s -- --dir ~/whistleblower --extension-id <EXTENSION_ID>
 ```
 
 Manual install:
@@ -36,9 +37,10 @@ brew install uv
 uv sync
 ```
 
-4) Create `.env` (already in repo) and fill keys:
+4) Create `.env` and fill keys:
 ```
 OPENAI_API_KEY=
+OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4o-mini
 HUGGINGFACE_TOKEN=
 WHISPER_MODEL=medium
@@ -109,3 +111,4 @@ uv run whistleblower summarize --input output/speaker_transcript.md \
 - The CLI auto-loads `.env` if present.
 - pyannote models are gated and require a valid Hugging Face token.
 - PyTorch 2.6+ uses safe checkpoint loading; code allowlists pyannote classes.
+- For OpenAI-compatible endpoints (on-prem/OpenRouter), set `OPENAI_BASE_URL`.
