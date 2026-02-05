@@ -47,6 +47,15 @@ WHISPER_MODEL=medium
 OUTPUT_DIR=./output
 KEEP_RAW_AUDIO=false
 CHUNK_SEC=20
+LIVE_PROCESSING=true
+LIVE_ASR_MODEL=small
+LIVE_ASR_WINDOW_SEC=30
+LIVE_ASR_STRIDE_SEC=10
+LIVE_ASR_OVERLAP_SEC=5
+LIVE_DIARIZE_WINDOW_SEC=120
+LIVE_DIARIZE_STRIDE_SEC=60
+LIVE_DEVICE=auto
+LIVE_POLL_MS=500
 FFMPEG_PATH=/opt/homebrew/bin/ffmpeg
 ```
 
@@ -89,6 +98,13 @@ Output files will be in the session folder:
 - `speaker_transcript.md`
 - `summary.md`
 
+Live (during recording) output files will be in `output/session-*/live/`:
+- `chunks/` and `chunks_wav/`
+- `live_transcript.txt` and `live_transcript_segments.json`
+- `live_diarization/segments.json` and `live_diarization.rttm`
+- `speaker_transcript.live.md`
+- `live.log`
+
 Manual steps (if you want custom paths or separate files):
 ```bash
 uv run whistleblower transcribe --audio /path/to/recording.webm \
@@ -112,3 +128,4 @@ uv run whistleblower summarize --input output/speaker_transcript.md \
 - pyannote models are gated and require a valid Hugging Face token.
 - PyTorch 2.6+ uses safe checkpoint loading; code allowlists pyannote classes.
 - For OpenAI-compatible endpoints (on-prem/OpenRouter), set `OPENAI_BASE_URL`.
+- Live processing uses `faster-whisper` when available and falls back to `openai-whisper`.
