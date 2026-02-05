@@ -46,16 +46,19 @@ function sendNativeMessage(payload) {
   });
 }
 
-function sendChunk(sessionId, index, data) {
+function sendChunk(sessionId, index, data, blobId, isLast, timecodeMs) {
   return sendNativeMessage({
     type: 'stream_chunk',
     sessionId,
     index,
     data,
+    blobId,
+    isLast,
+    timecodeMs,
   });
 }
 
-function enqueueBlob(sessionId, blob) {
+function enqueueBlob(sessionId, blob, blobId, timecodeMs) {
   const total = blob.size;
   let offset = 0;
   let index = 0;
@@ -64,12 +67,13 @@ function enqueueBlob(sessionId, blob) {
     const slice = blob.slice(offset, offset + MAX_CHUNK_BYTES);
     offset += MAX_CHUNK_BYTES;
     const currentIndex = index;
+    const isLast = offset >= total;
     index += 1;
 
     sendQueue = sendQueue.then(async () => {
       const buffer = await slice.arrayBuffer();
       const data = arrayBufferToBase64(buffer);
-      await sendChunk(sessionId, currentIndex, data);
+      await sendChunk(sessionId, currentIndex, data, blobId, isLast, timecodeMs);
     }).catch(() => {});
   }
 }
@@ -126,7 +130,12 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0 && currentSessionId) {
-            enqueueBlob(currentSessionId, e.data);
+            const blobId = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+            const timecodeMs =
+              typeof e.timecode === 'number' && Number.isFinite(e.timecode)
+                ? Math.round(e.timecode)
+                : null;
+            enqueueBlob(currentSessionId, e.data, blobId, timecodeMs);
           }
         };
 

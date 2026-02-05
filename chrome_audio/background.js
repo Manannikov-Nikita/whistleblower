@@ -130,6 +130,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       session_id: message.sessionId,
       index: message.index,
       data: message.data,
+      blob_id: message.blobId,
+      is_last: message.isLast,
+      timecode_ms: message.timecodeMs,
     });
     sendResponse({ ok });
     return true;
