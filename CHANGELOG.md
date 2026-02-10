@@ -1,5 +1,10 @@
 # Start
 
+## 2026-02-09
+- Moved summary system prompt to a configurable file (`SUMMARIZE_SYSTEM_PROMPT_PATH`).
+- Saved `speaker_transcript.md` and `summary.md` under a shared knowledge base folder (`KNOWLEDGE_BASE_DIR`).
+- Updated session folder timestamp format to `session-YYYY-MM-DD-HH:MM` and refreshed README examples.
+
 ## 2026-02-05
 - Added live (during recording) processing via chunk manifests and a background live worker.
 - Added live output artifacts under `output/session-*/live/`.

@@ -45,8 +45,10 @@ OPENAI_MODEL=gpt-4o-mini
 HUGGINGFACE_TOKEN=
 WHISPER_MODEL=medium
 OUTPUT_DIR=./output
+KNOWLEDGE_BASE_DIR=./output/knowledge_base
 KEEP_RAW_AUDIO=false
 CHUNK_SEC=20
+SUMMARIZE_SYSTEM_PROMPT_PATH=./whistleblower/prompts/summarize_system.txt
 LIVE_PROCESSING=true
 LIVE_ASR_MODEL=small
 LIVE_ASR_WINDOW_SEC=30
@@ -95,6 +97,9 @@ Output files will be in the session folder:
 - `transcript.txt`
 - `transcript_segments.json`
 - `diarization/segments.json` + `diarization/diarization.rttm`
+
+Speaker transcript and summary are saved to the knowledge base folder
+(default `output/knowledge_base/<session-name>/`):
 - `speaker_transcript.md`
 - `summary.md`
 
@@ -121,6 +126,9 @@ uv run whistleblower merge-transcript \
 
 uv run whistleblower summarize --input output/speaker_transcript.md \
   --output output/summary.md
+
+When using `--session-dir`, the CLI writes speaker transcript and summary into the
+knowledge base folder (see `KNOWLEDGE_BASE_DIR`). Use `--output` to override.
 ```
 
 ## Notes

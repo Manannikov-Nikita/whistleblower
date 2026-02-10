@@ -27,6 +27,12 @@ def _resolve_inbox_dir() -> Optional[Path]:
 def _output_dir() -> Path:
     return Path(os.getenv("OUTPUT_DIR", str(_repo_root() / "output"))).expanduser()
 
+def _knowledge_base_dir() -> Path:
+    value = os.getenv("KNOWLEDGE_BASE_DIR")
+    if value:
+        return Path(value).expanduser()
+    return _output_dir() / "knowledge_base"
+
 def _log_path() -> Path:
     return _output_dir() / "native_host.log"
 
@@ -129,7 +135,7 @@ def _load_live_config() -> LiveConfig:
 
 
 def _default_session_name() -> str:
-    return datetime.now().strftime("session-%Y%m%d-%H%M%S")
+    return datetime.now().strftime("session-%Y-%m-%d-%H:%M")
 
 
 def _read_message() -> Optional[dict]:
@@ -513,8 +519,9 @@ def _run_pipeline(audio_path: Path, session_dir: Path) -> None:
     transcript_path = session_dir / "transcript.txt"
     segments_path = session_dir / "transcript_segments.json"
     diarization_dir = session_dir / "diarization"
-    speaker_path = session_dir / "speaker_transcript.md"
-    summary_path = session_dir / "summary.md"
+    knowledge_session_dir = _knowledge_base_dir() / session_dir.name
+    speaker_path = knowledge_session_dir / "speaker_transcript.md"
+    summary_path = knowledge_session_dir / "summary.md"
 
     transcribe_audio(
         audio_path=audio_path,

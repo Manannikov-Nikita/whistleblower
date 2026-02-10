@@ -27,6 +27,20 @@ def _load_dotenv(path: Path = Path(".env")) -> None:
         os.environ.setdefault(key, value)
 
 
+def _resolve_knowledge_base_dir(session_dir: Path) -> Path:
+    configured = os.getenv("KNOWLEDGE_BASE_DIR")
+    if configured:
+        return Path(configured).expanduser()
+    output_dir = os.getenv("OUTPUT_DIR")
+    if output_dir:
+        return Path(output_dir).expanduser() / "knowledge_base"
+    return session_dir.parent / "knowledge_base"
+
+
+def _resolve_knowledge_session_dir(session_dir: Path) -> Path:
+    return _resolve_knowledge_base_dir(session_dir) / session_dir.name
+
+
 def _resolve_session_audio(session_dir: Path) -> Path:
     wav_path = session_dir / "audio.wav"
     if wav_path.exists():
@@ -127,7 +141,7 @@ def _cmd_merge(args: argparse.Namespace) -> int:
         base_dir = Path(args.session_dir)
         diarization_segments = base_dir / "diarization" / "segments.json"
         transcript_segments = base_dir / "transcript_segments.json"
-        output_path = base_dir / "speaker_transcript.md"
+        output_path = _resolve_knowledge_session_dir(base_dir) / "speaker_transcript.md"
     else:
         if not args.diarization_segments or not args.transcript_segments:
             print(
@@ -163,10 +177,17 @@ def _cmd_merge(args: argparse.Namespace) -> int:
 def _cmd_summarize(args: argparse.Namespace) -> int:
     if args.session_dir:
         base_dir = Path(args.session_dir)
-        speaker_path = base_dir / "speaker_transcript.md"
+        knowledge_session_dir = _resolve_knowledge_session_dir(base_dir)
+        speaker_path = knowledge_session_dir / "speaker_transcript.md"
+        legacy_speaker_path = base_dir / "speaker_transcript.md"
         transcript_path = base_dir / "transcript.txt"
-        input_path = speaker_path if speaker_path.exists() else transcript_path
-        output_path = base_dir / "summary.md"
+        if speaker_path.exists():
+            input_path = speaker_path
+        elif legacy_speaker_path.exists():
+            input_path = legacy_speaker_path
+        else:
+            input_path = transcript_path
+        output_path = knowledge_session_dir / "summary.md"
     else:
         if not args.input:
             print("Provide --session-dir or --input.", file=sys.stderr)

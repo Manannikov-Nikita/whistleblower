@@ -11,6 +11,28 @@ def _resolve_model(model: Optional[str]) -> str:
     return model or os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 
+def _default_system_prompt_path() -> Path:
+    return Path(__file__).resolve().parent / "prompts" / "summarize_system.txt"
+
+
+def _load_system_prompt() -> str:
+    override = (
+        os.getenv("SUMMARIZE_SYSTEM_PROMPT_PATH")
+        or os.getenv("SUMMARY_SYSTEM_PROMPT_PATH")
+    )
+    prompt_path = Path(override).expanduser() if override else _default_system_prompt_path()
+    if not prompt_path.exists():
+        raise SummarizationError(
+            f"System prompt file not found: {prompt_path}"
+        )
+    text = prompt_path.read_text(encoding="utf-8").strip()
+    if not text:
+        raise SummarizationError(
+            f"System prompt file is empty: {prompt_path}"
+        )
+    return text
+
+
 def _build_prompt(text: str, language: str) -> str:
     return (
         "Summarize the meeting transcript in Markdown.\n"
@@ -56,10 +78,7 @@ def summarize_text(
         input=[
             {
                 "role": "system",
-                "content": (
-                    "You are a careful assistant that writes concise, "
-                    "structured meeting summaries."
-                ),
+                "content": _load_system_prompt(),
             },
             {"role": "user", "content": prompt},
         ],
